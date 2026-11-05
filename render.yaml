@@ -1,0 +1,34 @@
+# Web service only. MySQL stays outside Render because this app uses MySQL
+# and Render's managed database is PostgreSQL. Secrets are not stored here:
+# AUTH_SECRET is generated on first Blueprint sync, and database values are
+# entered in the Render Dashboard.
+services:
+  - type: web
+    name: tapiz-boards
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: AUTH_TRUST_HOST
+        value: "true"
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_URL
+        fromService:
+          name: tapiz-boards
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_SITE_URL
+        fromService:
+          name: tapiz-boards
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL_CA_BASE64
+        sync: false
