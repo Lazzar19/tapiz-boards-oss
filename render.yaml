@@ -8,9 +8,13 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm ci && npm run build
+    # This repo gitignores package-lock.json, so npm ci cannot run on Render.
+    buildCommand: npm install && npm run build
     startCommand: npm start
-    healthCheckPath: /api/health
+    # /api/health queries MySQL and returns 503 when the database is down.
+    # Render treats that as a failed deploy (it needs 2xx/3xx within 5s),
+    # so the probe stays on the process-only liveness route.
+    healthCheckPath: /api/live
     envVars:
       - key: NODE_VERSION
         value: "20"
